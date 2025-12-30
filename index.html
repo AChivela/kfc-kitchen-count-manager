@@ -1501,10 +1501,6 @@
             recentContainer.innerHTML = recentHTML;
         }
 
-        // [Rest of the functions remain the same as previous version]
-        // Handle shift selection, table initialization, input handling, etc.
-        // These functions are identical to the previous version
-
         // Handle shift selection
         function handleShiftSelect(card) {
             selectedShift = card.dataset.shift;
@@ -1913,6 +1909,110 @@
             document.getElementById('reportActions').style.display = 'flex';
         }
 
+        // Generate shift report
+        function generateShiftReport(records, shiftFilter) {
+            const shifts = shiftFilter === 'all' ? ['Tarde', 'Noite'] : [shiftFilter];
+            
+            let html = '<div class="report-section">';
+            
+            shifts.forEach(shift => {
+                const shiftRecords = records.filter(r => r.shift === shift);
+                
+                if (shiftRecords.length === 0) {
+                    html += `<h3>Turno: ${shift} (0 registos)</h3>`;
+                    html += `<div class="empty-state" style="padding: 20px;"><p>Sem registos para este turno</p></div>`;
+                    return;
+                }
+                
+                html += `
+                    <h3>Turno: ${shift} (${shiftRecords.length} registos)</h3>
+                    <div class="report-table-container">
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>Data</th>
+                                    <th>Utilizador</th>`;
+                
+                PRODUCTS.forEach(product => {
+                    html += `<th>${product.name}</th>`;
+                });
+                
+                html += `<th>Total Turno</th></tr></thead><tbody>`;
+                
+                shiftRecords.forEach(record => {
+                    html += `<tr><td>${record.date || 'N/A'}</td><td>${record.username || 'N/A'}</td>`;
+                    
+                    PRODUCTS.forEach(product => {
+                        const totalValue = record[`${product.id}_total`];
+                        html += `<td>${totalValue !== undefined && totalValue !== null ? totalValue : '-'}</td>`;
+                    });
+                    
+                    html += `<td><strong>${record.total_shift || 0}</strong></td></tr>`;
+                });
+                
+                html += `<tr class="totals-row"><td colspan="2"><strong>TOTAL ${shift.toUpperCase()}</strong></td>`;
+                
+                PRODUCTS.forEach(product => {
+                    const productTotal = shiftRecords.reduce((sum, r) => {
+                        const val = r[`${product.id}_total`];
+                        return sum + (typeof val === 'number' ? val : 0);
+                    }, 0);
+                    html += `<td><strong>${productTotal}</strong></td>`;
+                });
+                
+                const shiftTotal = shiftRecords.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+                html += `<td><strong>${shiftTotal}</strong></td></tr>`;
+                
+                html += '</tbody></table></div>';
+            });
+            
+            html += '</div>';
+            
+            return html;
+        }
+
+        // Generate standard report
+        function generateStandardReport(records) {
+            let html = '<div class="report-table-container"><table class="report-table"><thead><tr>';
+            html += '<th>Data</th><th>Turno</th><th>Utilizador</th>';
+            
+            PRODUCTS.forEach(product => {
+                html += `<th>${product.name}</th>`;
+            });
+            
+            html += '<th>Total</th></tr></thead><tbody>';
+            
+            records.forEach(record => {
+                html += `<tr><td>${record.date || 'N/A'}</td>`;
+                html += `<td><span class="shift-badge ${(record.shift || '').toLowerCase()}">${record.shift || 'N/A'}</span></td>`;
+                html += `<td>${record.username || 'N/A'}</td>`;
+                
+                PRODUCTS.forEach(product => {
+                    const totalValue = record[`${product.id}_total`];
+                    html += `<td>${totalValue !== undefined && totalValue !== null ? totalValue : '-'}</td>`;
+                });
+                
+                html += `<td><strong>${record.total_shift || 0}</strong></td></tr>`;
+            });
+            
+            html += `<tr class="totals-row"><td colspan="3"><strong>TOTAL GERAL</strong></td>`;
+            
+            PRODUCTS.forEach(product => {
+                const productTotal = records.reduce((sum, r) => {
+                    const val = r[`${product.id}_total`];
+                    return sum + (typeof val === 'number' ? val : 0);
+                }, 0);
+                html += `<td><strong>${productTotal}</strong></td>`;
+            });
+            
+            const grandTotal = records.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+            html += `<td><strong>${grandTotal}</strong></td></tr>`;
+            
+            html += '</tbody></table></div>';
+            
+            return html;
+        }
+
         // Generate summary report (weekly/monthly)
         function generateSummaryReport(records, periodType) {
             // Group records by date
@@ -2074,9 +2174,6 @@
             return html;
         }
 
-        // [Other report generation functions remain similar to previous version]
-        // Generate shift report and standard report functions...
-
         // Parse Portuguese date format
         function parsePortugueseDate(dateStr) {
             try {
@@ -2094,6 +2191,18 @@
             } catch (error) {
                 return new Date();
             }
+        }
+
+        // Get report type name
+        function getReportTypeName(type) {
+            const types = {
+                'daily': 'Diário Detalhado',
+                'shift': 'Por Turno',
+                'weekly': 'Resumo Semanal',
+                'monthly': 'Resumo Mensal',
+                'comparative': 'Comparativo'
+            };
+            return types[type] || type;
         }
 
         // Handle export PDF
@@ -2190,7 +2299,9 @@
             if (reportType === 'weekly' || reportType === 'monthly') {
                 reportText += generateSummaryReportText(filteredRecords, reportType);
             } else if (reportType === 'comparative') {
-                reportText += generateComparativeReportText(filteredRecords);
+                reportText += generateComparativeReportText(filteredRecords, startDate, endDate);
+            } else if (reportType === 'shift') {
+                reportText += generateShiftReportText(filteredRecords, shiftFilter);
             } else {
                 reportText += generateDetailedReportText(filteredRecords);
             }
@@ -2287,6 +2398,174 @@
             return text;
         }
 
+        // Generate shift report text
+        function generateShiftReportText(records, shiftFilter) {
+            let text = `RELATÓRIO POR TURNO\n`;
+            text += `─`.repeat(50) + '\n\n';
+            
+            const shifts = shiftFilter === 'all' ? ['Tarde', 'Noite'] : [shiftFilter];
+            
+            shifts.forEach(shift => {
+                const shiftRecords = records.filter(r => r.shift === shift);
+                
+                if (shiftRecords.length === 0) {
+                    text += `TURNO ${shift.toUpperCase()}: 0 registos\n\n`;
+                    return;
+                }
+                
+                text += `TURNO ${shift.toUpperCase()} (${shiftRecords.length} registos):\n`;
+                text += `─`.repeat(30) + '\n\n';
+                
+                // Group by date
+                const recordsByDate = {};
+                shiftRecords.forEach(record => {
+                    if (!recordsByDate[record.date]) {
+                        recordsByDate[record.date] = [];
+                    }
+                    recordsByDate[record.date].push(record);
+                });
+                
+                Object.keys(recordsByDate).sort().forEach(date => {
+                    const dateRecords = recordsByDate[date];
+                    const dateTotal = dateRecords.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+                    
+                    text += `  ${date}: ${dateTotal.toLocaleString()} peças (${dateRecords.length} registos)\n`;
+                    
+                    // Show product details for each record
+                    dateRecords.forEach((record, index) => {
+                        text += `    ${index + 1}. ${record.username}: ${record.total_shift} peças\n`;
+                        
+                        PRODUCTS.forEach(product => {
+                            const totalValue = record[`${product.id}_total`];
+                            if (totalValue && totalValue !== '0' && totalValue !== 0) {
+                                text += `       ${product.name}: ${totalValue}\n`;
+                            }
+                        });
+                    });
+                    text += '\n';
+                });
+                
+                // Calculate shift totals
+                const shiftTotal = shiftRecords.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+                const shiftAvg = Math.round(shiftTotal / shiftRecords.length);
+                
+                text += `  TOTAL DO TURNO ${shift.toUpperCase()}: ${shiftTotal.toLocaleString()} peças\n`;
+                text += `  MÉDIA POR REGISTO: ${shiftAvg.toLocaleString()} peças\n\n`;
+            });
+            
+            return text;
+        }
+
+        // Generate detailed report text
+        function generateDetailedReportText(records) {
+            let text = `RELATÓRIO DETALHADO\n`;
+            text += `─`.repeat(50) + '\n\n';
+            
+            // Group records by date
+            const recordsByDate = {};
+            records.forEach(record => {
+                if (!recordsByDate[record.date]) {
+                    recordsByDate[record.date] = [];
+                }
+                recordsByDate[record.date].push(record);
+            });
+            
+            Object.keys(recordsByDate).sort().forEach(date => {
+                const dateRecords = recordsByDate[date];
+                const dateTotal = dateRecords.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+                
+                text += `DATA: ${date} (Total: ${dateTotal.toLocaleString()} peças)\n`;
+                text += `─`.repeat(40) + '\n\n';
+                
+                // Group by shift
+                const recordsByShift = {};
+                dateRecords.forEach(record => {
+                    if (!recordsByShift[record.shift]) {
+                        recordsByShift[record.shift] = [];
+                    }
+                    recordsByShift[record.shift].push(record);
+                });
+                
+                Object.keys(recordsByShift).sort().forEach(shift => {
+                    const shiftRecords = recordsByShift[shift];
+                    const shiftTotal = shiftRecords.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+                    
+                    text += `  Turno ${shift}: ${shiftTotal.toLocaleString()} peças\n`;
+                    
+                    shiftRecords.forEach((record, index) => {
+                        text += `    ${index + 1}. ${record.username}: ${record.total_shift} peças\n`;
+                        
+                        PRODUCTS.forEach(product => {
+                            const totalValue = record[`${product.id}_total`];
+                            if (totalValue && totalValue !== '0' && totalValue !== 0) {
+                                text += `       ${product.name}: ${totalValue}\n`;
+                            }
+                        });
+                    });
+                    text += '\n';
+                });
+                
+                text += '\n';
+            });
+            
+            // Add totals
+            const grandTotal = records.reduce((sum, r) => sum + (r.total_shift || 0), 0);
+            const avgPerRecord = records.length > 0 ? Math.round(grandTotal / records.length) : 0;
+            
+            text += `RESUMO GERAL:\n`;
+            text += `─`.repeat(30) + '\n';
+            text += `Total de Registos: ${records.length}\n`;
+            text += `Total de Peças: ${grandTotal.toLocaleString()}\n`;
+            text += `Média por Registo: ${avgPerRecord.toLocaleString()} peças\n`;
+            
+            return text;
+        }
+
+        // Generate comparative report text
+        function generateComparativeReportText(records, startDate, endDate) {
+            let text = `RELATÓRIO COMPARATIVO\n`;
+            text += `─`.repeat(50) + '\n\n';
+            
+            // Calculate product totals
+            const productTotals = {};
+            PRODUCTS.forEach(product => {
+                productTotals[product.id] = records.reduce((sum, r) => {
+                    const val = r[`${product.id}_total`];
+                    if (typeof val === 'number') return sum + val;
+                    if (typeof val === 'string' && val.trim() !== '') {
+                        const num = extractNumericValue(val);
+                        return sum + num;
+                    }
+                    return sum;
+                }, 0);
+            });
+            
+            // Sort by total
+            const sortedProducts = [...PRODUCTS].sort((a, b) => productTotals[b.id] - productTotals[a.id]);
+            
+            text += `ANÁLISE POR PRODUTO:\n\n`;
+            
+            sortedProducts.forEach(product => {
+                const total = productTotals[product.id];
+                if (total > 0) {
+                    text += `${product.name}: ${total.toLocaleString()} ${product.inputType === 'manual' ? 'peças' : 'unid'}\n`;
+                }
+            });
+            
+            // Calculate totals
+            const totalAllProducts = Object.values(productTotals).reduce((sum, val) => sum + val, 0);
+            const daysCount = Math.ceil((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) + 1;
+            const dailyAvg = Math.round(totalAllProducts / daysCount);
+            
+            text += `\nRESUMO:\n`;
+            text += `─`.repeat(30) + '\n';
+            text += `Período: ${daysCount} dias\n`;
+            text += `Total Produzido: ${totalAllProducts.toLocaleString()} peças\n`;
+            text += `Média Diária: ${dailyAvg.toLocaleString()} peças/dia\n`;
+            
+            return text;
+        }
+
         // Create Excel file
         function createExcelFile() {
             const { reportType, shiftFilter, startDate, endDate, filteredRecords } = currentReportData;
@@ -2318,6 +2597,24 @@
                     const goalPercentage = Math.round((dailyTotal / 10000) * 100);
                     
                     csvContent += `${date},${tardeTotal},${noiteTotal},${dailyTotal},${avgPerRecord},${goalPercentage}%\n`;
+                });
+            } else if (reportType === 'shift') {
+                csvContent += "Data,Turno,Utilizador,";
+                PRODUCTS.forEach(product => {
+                    csvContent += `${product.name},`;
+                });
+                csvContent += "Total\n";
+                
+                filteredRecords.forEach(record => {
+                    let row = `${record.date},${record.shift},${record.username},`;
+                    
+                    PRODUCTS.forEach(product => {
+                        const totalValue = record[`${product.id}_total`];
+                        row += `${totalValue || 0},`;
+                    });
+                    
+                    row += `${record.total_shift || 0}\n`;
+                    csvContent += row;
                 });
             } else {
                 // Standard detailed report
