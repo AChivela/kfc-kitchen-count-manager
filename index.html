@@ -2271,57 +2271,80 @@
             dates.forEach((date, dateIndex) => {
                 const dateRecords = recordsByDate[date];
                 
-                // Calcular totais para esta data
-                let dateTotal = 0;
-                const dateProductTotals = {
-                    minis: 0, filetes: 0, filetes_value: 0,
-                    zingers: 0, pedacos: 0, asas: 0
-                };
+                // Usar apenas o último registro do turno na data
+                const lastRecord = dateRecords[0];
                 
-                dateRecords.forEach(record => {
-                    dateTotal += record.total_shift || 0;
-                    
-                    // Só considerar o primeiro registro por data para o formato simples
-                    if (dateRecords.indexOf(record) === 0) {
-                        PRODUCTS.forEach(product => {
-                            const total = record[`${product.id}_total`];
-                            if (typeof total === 'number') {
-                                dateProductTotals[product.id] += total;
-                            } else if (typeof total === 'string' && total.trim() !== '') {
-                                const num = extractNumericValue(total);
-                                dateProductTotals[product.id] += num;
-                            }
-                        });
+                // Calcular totais do último registro
+                let dateTotal = 0;
+                const productValues = {};
+                
+                PRODUCTS.forEach(product => {
+                    const total = lastRecord[`${product.id}_total`];
+                    if (typeof total === 'number') {
+                        productValues[product.id] = total;
+                        dateTotal += total;
+                    } else if (typeof total === 'string' && total.trim() !== '') {
+                        productValues[product.id] = total;
+                        const num = extractNumericValue(total);
+                        dateTotal += num;
+                    } else {
+                        productValues[product.id] = '0';
                     }
                 });
                 
-                // Formato EXATO da imagem
+                // Formato EXATO da imagem (com cabeçalho "Produto")
                 printHtml += `
                     <div style="page-break-after: ${dateIndex < dates.length - 1 ? 'always' : 'avoid'};">
-                        <div style="text-align: center; margin-bottom: 30px;">
-                            <h1 style="color: #e30613; font-size: 24px; margin-bottom: 10px;">
-                                Contagem ${shiftToPrint === 'Tarde' ? 'Tarde' : 'Noite'}
+                        <div style="text-align: center; margin-bottom: 20px;">
+                            <h1 style="color: #000; font-size: 28px; margin-bottom: 5px; text-decoration: underline;">
+                                Produto
                             </h1>
-                            <h2 style="font-size: 20px; margin-bottom: 20px;">
-                                Date: ${date}
+                            <h2 style="font-size: 20px; margin-top: 30px; margin-bottom: 20px; text-align: left; margin-left: 50px;">
+                                Date: ${date} ${shiftToPrint === 'Tarde' ? 'Tarde' : 'Noite'}
                             </h2>
                         </div>
                         
-                        <div style="font-size: 18px; line-height: 2.5; margin-left: 50px;">
-                            <div>Minis/Tenders – ${dateProductTotals.minis || 0}</div>
-                            <div>Filets Ro – ${dateProductTotals.filetes || 0}</div>
-                            <div>Filetes Valeu – ${dateProductTotals.filetes_value || 0}</div>
-                            <div>Rangers – ${dateProductTotals.zingers || 0}</div>
-                            <div>Pedacos – ${dateProductTotals.pedacos || 0}</div>
-                            <div>Asas – ${dateProductTotals.asas || 0}</div>
+                        <div style="font-size: 18px; line-height: 2.2; margin-left: 50px; margin-top: 30px;">
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Minis/Tenders</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('minis', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.minis || '0'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Filetes</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('filetes', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.filetes || '0'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Filetes Value</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('filetes_value', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.filetes_value || '0'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Zingers</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('zingers', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.zingers || '0'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Pedacos</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('pedacos', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.pedacos || '0'}</div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-right: 150px;">
+                                <div style="width: 200px;">Asas</div>
+                                <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('asas', lastRecord)}</div>
+                                <div style="width: 100px; text-align: right;">${productValues.asas || '0'}</div>
+                            </div>
                         </div>
                         
-                        <div style="margin-top: 40px; font-size: 16px; text-align: center;">
-                            <div>Total do ${shiftToPrint}: <strong>${dateTotal.toLocaleString()}</strong> peças</div>
-                            <div style="margin-top: 10px; font-size: 14px; color: #666;">
-                                Registado por: ${dateRecords[0].username} | 
-                                Período: ${startDate} a ${endDate}
-                            </div>
+                        <div style="margin-top: 40px; font-size: 18px; text-align: left; margin-left: 50px; border-top: 2px solid #000; padding-top: 10px; width: 80%;">
+                            <div style="font-weight: bold; font-size: 20px;">Total Peças</div>
+                            <div style="font-size: 24px; font-weight: bold; margin-top: 5px;">${dateTotal.toLocaleString()}</div>
+                        </div>
+                        
+                        <div style="margin-top: 60px; font-size: 14px; text-align: center; color: #666;">
+                            <div>Registado por: ${lastRecord.username}</div>
+                            <div style="margin-top: 5px;">Sistema KFC Kitchen Count Manager</div>
                         </div>
                     </div>`;
             });
@@ -2331,15 +2354,21 @@
                 <html>
                 <head>
                     <title>Relatório KFC - ${shiftToPrint}</title>
+                    <meta charset="UTF-8">
                     <style>
                         body { 
                             font-family: 'Arial', sans-serif; 
                             margin: 0;
-                            padding: 20px;
+                            padding: 40px;
                             background: white;
+                            line-height: 1.5;
                         }
                         @media print {
-                            body { margin: 0; padding: 20px; }
+                            body { 
+                                margin: 0; 
+                                padding: 40px; 
+                                -webkit-print-color-adjust: exact;
+                            }
                             h1, h2 { color: black !important; }
                             div { page-break-inside: avoid; }
                         }
@@ -2347,12 +2376,48 @@
                             size: A4;
                             margin: 20mm;
                         }
+                        .product-row {
+                            display: flex;
+                            justify-content: space-between;
+                            margin-bottom: 15px;
+                            font-size: 18px;
+                        }
+                        .product-name {
+                            width: 200px;
+                        }
+                        .product-quantity {
+                            width: 250px;
+                            text-align: center;
+                        }
+                        .product-total {
+                            width: 100px;
+                            text-align: right;
+                        }
                     </style>
                 </head>
                 <body>
                     ${printHtml}
                 </body>
                 </html>`;
+        }
+
+        // Função auxiliar para formatar a exibição dos produtos no relatório impresso
+        function formatProductDisplayForPrint(productId, record) {
+            const product = PRODUCTS.find(p => p.id === productId);
+            if (!product) return '';
+            
+            if (product.inputType === 'manual') {
+                const manualValue = record[`${product.id}_manual`] || '';
+                return manualValue || '0';
+            } else if (product.inputType === 'boxes') {
+                const boxes = record[`${product.id}_boxes`] || 0;
+                const total = record[`${product.id}_total`] || 0;
+                return `${boxes} caixa(s)`;
+            } else {
+                const bags = record[`${product.id}_bags`] || 0;
+                const total = record[`${product.id}_total`] || 0;
+                return `${bags} saco(s)`;
+            }
         }
 
         // Handle export to Excel
@@ -3079,3 +3144,4 @@
     </script>
 </body>
 </html>
+
