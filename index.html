@@ -334,14 +334,14 @@
         .products-table th {
             background: #e30613;
             color: white;
-            padding: 18px;
+            padding: 14px 12px;
             text-align: left;
             font-weight: 600;
             font-size: 15px;
         }
 
         .products-table td {
-            padding: 18px;
+            padding: 12px 10px;
             border-bottom: 1px solid #eee;
             vertical-align: middle;
         }
@@ -357,25 +357,31 @@
         .input-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .input-group input {
-            padding: 12px;
+            padding: 10px;
             border: 2px solid #ddd;
             border-radius: 6px;
             font-size: 15px;
             transition: all 0.3s;
+            width: 100px;
         }
 
         .input-group input:focus {
             outline: none;
             border-color: #e30613;
+            box-shadow: 0 0 0 3px rgba(227, 6, 19, 0.1);
+        }
+
+        .input-group input.short-input {
+            width: 80px;
         }
 
         .adjust-btn {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border: none;
             border-radius: 6px;
             cursor: pointer;
@@ -385,6 +391,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
+            flex-shrink: 0;
         }
 
         .adjust-btn.plus {
@@ -409,6 +416,8 @@
             font-weight: 700;
             color: #e30613;
             font-size: 16px;
+            min-width: 80px;
+            text-align: right;
         }
 
         /* Summary Cards */
@@ -877,6 +886,21 @@
                 margin: 0 -20px;
                 border-radius: 0;
             }
+            
+            .products-table td,
+            .products-table th {
+                padding: 8px;
+            }
+            
+            .input-group input {
+                width: 70px;
+                padding: 8px;
+            }
+            
+            .adjust-btn {
+                width: 30px;
+                height: 30px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -888,14 +912,32 @@
             .products-table td,
             .report-table th,
             .report-table td {
-                padding: 12px;
+                padding: 10px 8px;
             }
             
             .adjust-btn {
-                width: 35px;
-                height: 35px;
-                font-size: 16px;
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
             }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .badge-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .badge-danger {
+            background: #dc3545;
+            color: white;
         }
     </style>
 </head>
@@ -1387,7 +1429,41 @@
                 });
             });
             
+            // Global keyboard shortcuts
+            document.addEventListener('keydown', handleGlobalKeyboard);
+            
             console.log('All event listeners set up');
+        }
+
+        // Handle global keyboard shortcuts
+        function handleGlobalKeyboard(e) {
+            // Ctrl+S para salvar
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                const saveBtn = document.getElementById('saveBtn');
+                if (saveBtn && saveBtn.style.display !== 'none') {
+                    handleSaveRecord();
+                }
+            }
+            
+            // Esc para cancelar
+            if (e.key === 'Escape') {
+                const cancelBtn = document.getElementById('cancelBtn');
+                if (cancelBtn && cancelBtn.style.display !== 'none') {
+                    handleCancel();
+                }
+            }
+            
+            // Tab navigation between fields
+            if (e.key === 'Tab' && !e.shiftKey) {
+                const activeElement = document.activeElement;
+                if (activeElement && (activeElement.id.includes('_adjust') || 
+                    activeElement.id.includes('_boxes') || 
+                    activeElement.id.includes('_bags') ||
+                    activeElement.id.includes('_manual'))) {
+                    // Let default behavior
+                }
+            }
         }
 
         // Handle login
@@ -1505,7 +1581,8 @@
                                        id="${product.id}_manual" 
                                        value="" 
                                        data-product="${product.id}"
-                                       placeholder="Ex: 150, 20/30, 8+1/2">
+                                       placeholder="Ex: 150, 20/30, 8+1/2"
+                                       class="short-input">
                             </div>
                         </td>
                         <td class="total-display" id="${product.id}_total">-</td>
@@ -1525,7 +1602,8 @@
                                        step="1" 
                                        value="0" 
                                        data-product="${product.id}"
-                                       placeholder="${product.inputLabel}">
+                                       placeholder="${product.inputLabel}"
+                                       class="short-input">
                             </div>
                         </td>
                         <td>
@@ -1535,7 +1613,7 @@
                                        id="${product.id}_adjust" 
                                        value="0" 
                                        data-product="${product.id}"
-                                       readonly>
+                                       class="short-input">
                                 <button class="adjust-btn plus" data-product="${product.id}" data-action="plus">+</button>
                             </div>
                         </td>
@@ -1551,13 +1629,80 @@
                 // Input changes
                 document.querySelectorAll('#productsTableBody input').forEach(input => {
                     input.addEventListener('input', handleInputChange);
+                    
+                    // Adicionar suporte a teclado para campos de ajuste
+                    if (input.id.includes('_adjust')) {
+                        input.addEventListener('keydown', handleAdjustKeydown);
+                        input.addEventListener('focus', function() {
+                            this.select(); // Selecionar todo o texto ao focar
+                        });
+                    }
+                    
+                    // Permitir teclas para sacos/caixas/manual
+                    if (input.id.includes('_boxes') || input.id.includes('_bags') || input.id.includes('_manual')) {
+                        input.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                // Ir para o próximo campo
+                                const currentRow = this.closest('tr');
+                                const nextRow = currentRow.nextElementSibling;
+                                if (nextRow) {
+                                    const nextInput = nextRow.querySelector('input');
+                                    if (nextInput) {
+                                        nextInput.focus();
+                                        nextInput.select();
+                                    }
+                                }
+                            }
+                        });
+                    }
                 });
                 
                 // Adjust buttons
                 document.querySelectorAll('.adjust-btn').forEach(btn => {
                     btn.addEventListener('click', handleAdjustClick);
                 });
+                
+                // Focus no primeiro campo
+                const firstInput = tbody.querySelector('input');
+                if (firstInput) firstInput.focus();
             }, 100);
+        }
+
+        // Handle adjust field keyboard
+        function handleAdjustKeydown(e) {
+            const input = e.target;
+            const productId = input.dataset.product;
+            
+            if (e.key === 'ArrowUp' || e.key === '+') {
+                e.preventDefault();
+                let value = parseInt(input.value) || 0;
+                input.value = value + 1;
+                triggerInputEvent(input);
+            } else if (e.key === 'ArrowDown' || e.key === '-') {
+                e.preventDefault();
+                let value = parseInt(input.value) || 0;
+                input.value = value - 1;
+                triggerInputEvent(input);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                // Ir para o próximo campo
+                const currentRow = input.closest('tr');
+                const nextRow = currentRow.nextElementSibling;
+                if (nextRow) {
+                    const nextInput = nextRow.querySelector('input');
+                    if (nextInput) {
+                        nextInput.focus();
+                        nextInput.select();
+                    }
+                }
+            }
+        }
+
+        // Trigger input event
+        function triggerInputEvent(element) {
+            const event = new Event('input', { bubbles: true });
+            element.dispatchEvent(event);
         }
 
         // Handle input changes
@@ -1655,9 +1800,10 @@
             }
             
             adjustInput.value = currentAdjust;
+            adjustInput.focus();
+            adjustInput.select();
             
-            const event = new Event('input');
-            adjustInput.dispatchEvent(event);
+            triggerInputEvent(adjustInput);
         }
 
         // Update shift total
@@ -2190,7 +2336,7 @@
             return html;
         }
 
-        // Handle print shift report - NOVO FUNCIONALIDADE
+        // Handle print shift report - CORRIGIDO PARA FUNCIONAR COM NOITE
         function handlePrintShiftReport() {
             if (!currentReportData) {
                 showToast('Gere um relatório primeiro', true);
@@ -2203,8 +2349,35 @@
                 return;
             }
 
+            // Determinar qual turno mostrar
+            let shiftToPrint = currentReportData.shiftFilter;
+            
+            // Se for "todos", perguntar qual turno imprimir
+            if (shiftToPrint === 'all') {
+                const userChoice = prompt('Para imprimir, selecione o turno:\nDigite 1 para TARDE\nDigite 2 para NOITE', '1');
+                
+                if (!userChoice) return;
+                
+                if (userChoice === '1' || userChoice.toLowerCase() === 'tarde') {
+                    shiftToPrint = 'Tarde';
+                } else if (userChoice === '2' || userChoice.toLowerCase() === 'noite') {
+                    shiftToPrint = 'Noite';
+                } else {
+                    showToast('Turno inválido. Use 1 para Tarde ou 2 para Noite.', true);
+                    return;
+                }
+            }
+
+            // Filtrar registos apenas para o turno selecionado
+            const shiftRecords = currentReportData.filteredRecords.filter(r => r.shift === shiftToPrint);
+            
+            if (shiftRecords.length === 0) {
+                showToast(`Não há registos para o turno ${shiftToPrint} neste período`, true);
+                return;
+            }
+
             // Criar relatório no formato específico
-            const printContent = generatePrintFormat(currentReportData);
+            const printContent = generatePrintFormat(shiftToPrint, shiftRecords, currentReportData);
             
             // Abrir janela de impressão
             const printWindow = window.open('', '_blank');
@@ -2220,37 +2393,7 @@
         }
 
         // Generate print format - FORMATO EXATO DA IMAGEM
-        function generatePrintFormat(reportData) {
-            const { filteredRecords, shiftFilter, startDate, endDate } = reportData;
-            
-            // Determinar qual turno mostrar
-            let shiftToPrint = shiftFilter;
-            if (shiftFilter === 'all') {
-                // Se for "todos", usar o primeiro turno disponível
-                if (filteredRecords.length > 0) {
-                    shiftToPrint = filteredRecords[0].shift;
-                }
-            }
-            
-            // Filtrar registos apenas para o turno selecionado
-            const shiftRecords = filteredRecords.filter(r => r.shift === shiftToPrint);
-            
-            if (shiftRecords.length === 0) {
-                return `
-                    <html>
-                    <head>
-                        <title>Relatório KFC - Sem dados</title>
-                        <style>
-                            body { font-family: Arial, sans-serif; padding: 20px; }
-                            h1 { color: #e30613; }
-                        </style>
-                    </head>
-                    <body>
-                        <h1>Sem dados para o turno ${shiftToPrint}</h1>
-                    </body>
-                    </html>`;
-            }
-            
+        function generatePrintFormat(shiftName, shiftRecords, reportData) {
             // Agrupar por data
             const recordsByDate = {};
             shiftRecords.forEach(record => {
@@ -2300,7 +2443,7 @@
                                 Produto
                             </h1>
                             <h2 style="font-size: 20px; margin-top: 30px; margin-bottom: 20px; text-align: left; margin-left: 50px;">
-                                Date: ${date} ${shiftToPrint === 'Tarde' ? 'Tarde' : 'Noite'}
+                                Date: ${date} ${shiftName === 'Tarde' ? 'Tarde' : 'Noite'}
                             </h2>
                         </div>
                         
@@ -2353,7 +2496,7 @@
                 <!DOCTYPE html>
                 <html>
                 <head>
-                    <title>Relatório KFC - ${shiftToPrint}</title>
+                    <title>Relatório KFC - ${shiftName}</title>
                     <meta charset="UTF-8">
                     <style>
                         body { 
@@ -2411,11 +2554,9 @@
                 return manualValue || '0';
             } else if (product.inputType === 'boxes') {
                 const boxes = record[`${product.id}_boxes`] || 0;
-                const total = record[`${product.id}_total`] || 0;
                 return `${boxes} caixa(s)`;
             } else {
                 const bags = record[`${product.id}_bags`] || 0;
-                const total = record[`${product.id}_total`] || 0;
                 return `${bags} saco(s)`;
             }
         }
@@ -2614,7 +2755,7 @@
         }
 
         // View record details
-        window.viewRecord = function(recordId) {
+        function viewRecord(recordId) {
             const record = allRecords.find(r => r.id === recordId);
             if (!record) {
                 showToast('Registo não encontrado!', true);
@@ -2688,7 +2829,7 @@
         }
 
         // Edit record
-        window.editRecord = function(recordId) {
+        function editRecord(recordId) {
             const record = allRecords.find(r => r.id === recordId);
             if (!record) {
                 showToast('Registo não encontrado!', true);
@@ -2777,7 +2918,8 @@
                             <div class="input-group">
                                 <input type="text" 
                                        id="edit_${product.id}_manual" 
-                                       value="${manualValue}">
+                                       value="${manualValue}"
+                                       class="short-input">
                             </div>
                         </td>
                         <td class="total-display">${manualValue || '-'}</td>
@@ -2787,12 +2929,13 @@
                     const totalValue = record[`${product.id}_total`] || 0;
                     row.innerHTML = `
                         <td><strong>${product.name}</strong></td>
-                        <td style="font-size: 0.9rem; color: #666;">${product.configText}</td>
+                        <td style="font-size: 0.9rem; color: #666;">1 caixa = ${product.bagsPerBox} sacos = ${product.bagsPerBox * product.unitsPerBag} unidades</td>
                         <td>
                             <div class="input-group">
                                 <input type="number" 
                                        id="edit_${product.id}_boxes" 
-                                       value="${boxesValue}" min="0">
+                                       value="${boxesValue}" min="0"
+                                       class="short-input">
                             </div>
                         </td>
                         <td class="total-display">${totalValue}</td>
@@ -2809,7 +2952,8 @@
                             <div class="input-group">
                                 <input type="number" 
                                        id="edit_${product.id}_bags" 
-                                       value="${bagsValue}" min="0">
+                                       value="${bagsValue}" min="0"
+                                       class="short-input">
                             </div>
                         </td>
                         <td class="total-display">${totalValue}</td>
@@ -2913,7 +3057,7 @@
         }
 
         // Delete record
-        window.deleteRecord = async function(recordId) {
+        function deleteRecord(recordId) {
             if (!confirm('Tem certeza que deseja eliminar este registo?\nEsta ação não pode ser desfeita.')) {
                 return;
             }
@@ -3144,4 +3288,3 @@
     </script>
 </body>
 </html>
-
