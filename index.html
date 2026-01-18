@@ -1247,7 +1247,7 @@
     </div>
 
     <script>
-        // Products configuration - AJUSTADO PARA O FORMATO DO RELATÓRIO
+        // Products configuration - CORRIGIDO
         const PRODUCTS = [
             { 
                 id: 'minis', 
@@ -1263,7 +1263,7 @@
                 unitsPerBag: 10, 
                 inputType: 'bags', 
                 inputLabel: 'Sacos',
-                reportLabel: 'Filets Ro'
+                reportLabel: 'Filetes RO'
             },
             { 
                 id: 'filetes_value', 
@@ -1280,14 +1280,14 @@
                 unitsPerBag: 10, 
                 inputType: 'bags', 
                 inputLabel: 'Sacos',
-                reportLabel: 'Rangers'
+                reportLabel: 'Zingers'
             },
             { 
                 id: 'pedacos', 
-                name: 'Pedaços', 
+                name: 'Pedaços',
                 inputType: 'manual', 
                 inputLabel: 'Total Peças',
-                reportLabel: 'Pedacos'
+                reportLabel: 'Pedaços'
             },
             { 
                 id: 'asas', 
@@ -2003,7 +2003,7 @@
             document.getElementById('reportResults').innerHTML = html;
         }
 
-        // Generate daily report HTML
+        // Generate daily report HTML - CORRIGIDO
         function generateDailyReportHTML(reportData) {
             const { filteredRecords, startDate, endDate, shiftFilter } = reportData;
             
@@ -2037,10 +2037,10 @@
                                     <th>Turno</th>
                                     <th>Utilizador</th>
                                     <th>Minis/Tenders</th>
-                                    <th>Filets Ro</th>
+                                    <th>Filetes RO</th>
                                     <th>Filetes Valeu</th>
                                     <th>Zingers</th>
-                                    <th>Pedacos</th>
+                                    <th>Pedaços</th>
                                     <th>Asas</th>
                                     <th>Total</th>
                                 </tr>
@@ -2087,16 +2087,15 @@
                                     ${record.shift}
                                 </span>
                             </td>
-                            <td>${record.username}</td>`;
-                    
-                    // Product columns in the EXACT order of the report format
-                    const productsInOrder = ['minis', 'filetes', 'filetes_value', 'zingers', 'pedacos', 'asas'];
-                    productsInOrder.forEach(productId => {
-                        const totalValue = record[`${productId}_total`];
-                        html += `<td>${totalValue !== undefined && totalValue !== null && totalValue !== '' && totalValue !== 0 ? totalValue : '-'}</td>`;
-                    });
-                    
-                    html += `<td><strong>${record.total_shift || 0}</strong></td></tr>`;
+                            <td>${record.username}</td>
+                            <td>${record.minis_total !== undefined && record.minis_total !== null && record.minis_total !== '' && record.minis_total !== 0 ? record.minis_total : '-'}</td>
+                            <td>${record.filetes_total !== undefined && record.filetes_total !== null && record.filetes_total !== '' && record.filetes_total !== 0 ? record.filetes_total : '-'}</td>
+                            <td>${record.filetes_value_total !== undefined && record.filetes_value_total !== null && record.filetes_value_total !== '' && record.filetes_value_total !== 0 ? record.filetes_value_total : '-'}</td>
+                            <td>${record.zingers_total !== undefined && record.zingers_total !== null && record.zingers_total !== '' && record.zingers_total !== 0 ? record.zingers_total : '-'}</td>
+                            <td>${record.pedacos_total !== undefined && record.pedacos_total !== null && record.pedacos_total !== '' && record.pedacos_total !== 0 ? record.pedacos_total : '-'}</td>
+                            <td>${record.asas_total !== undefined && record.asas_total !== null && record.asas_total !== '' && record.asas_total !== 0 ? record.asas_total : '-'}</td>
+                            <td><strong>${record.total_shift || 0}</strong></td>
+                        </tr>`;
                 });
             });
             
@@ -2199,7 +2198,7 @@
             return html;
         }
 
-        // Generate shift table HTML
+        // Generate shift table HTML - CORRIGIDO
         function generateShiftTableHTML(shiftName, records) {
             if (records.length === 0) return '';
             
@@ -2216,10 +2215,10 @@
                                     <th>Data</th>
                                     <th>Utilizador</th>
                                     <th>Minis/Tenders</th>
-                                    <th>Filets Ro</th>
+                                    <th>Filetes RO</th>
                                     <th>Filetes Valeu</th>
                                     <th>Zingers</th>
-                                    <th>Pedacos</th>
+                                    <th>Pedaços</th>
                                     <th>Asas</th>
                                     <th>Total</th>
                                 </tr>
@@ -2230,16 +2229,15 @@
                 html += `
                     <tr>
                         <td>${record.date}</td>
-                        <td>${record.username}</td>`;
-                
-                // Product columns in the EXACT order of the report format
-                const productsInOrder = ['minis', 'filetes', 'filetes_value', 'zingers', 'pedacos', 'asas'];
-                productsInOrder.forEach(productId => {
-                    const totalValue = record[`${productId}_total`];
-                    html += `<td>${totalValue !== undefined && totalValue !== null && totalValue !== '' && totalValue !== 0 ? totalValue : '-'}</td>`;
-                });
-                
-                html += `<td><strong>${record.total_shift || 0}</strong></td></tr>`;
+                        <td>${record.username}</td>
+                        <td>${record.minis_total !== undefined && record.minis_total !== null && record.minis_total !== '' && record.minis_total !== 0 ? record.minis_total : '-'}</td>
+                        <td>${record.filetes_total !== undefined && record.filetes_total !== null && record.filetes_total !== '' && record.filetes_total !== 0 ? record.filetes_total : '-'}</td>
+                        <td>${record.filetes_value_total !== undefined && record.filetes_value_total !== null && record.filetes_value_total !== '' && record.filetes_value_total !== 0 ? record.filetes_value_total : '-'}</td>
+                        <td>${record.zingers_total !== undefined && record.zingers_total !== null && record.zingers_total !== '' && record.zingers_total !== 0 ? record.zingers_total : '-'}</td>
+                        <td>${record.pedacos_total !== undefined && record.pedacos_total !== null && record.pedacos_total !== '' && record.pedacos_total !== 0 ? record.pedacos_total : '-'}</td>
+                        <td>${record.asas_total !== undefined && record.asas_total !== null && record.asas_total !== '' && record.asas_total !== 0 ? record.asas_total : '-'}</td>
+                        <td><strong>${record.total_shift || 0}</strong></td>
+                    </tr>`;
             });
             
             // Add totals
@@ -2336,23 +2334,20 @@
             return html;
         }
 
-        // Handle print shift report - CORRIGIDO PARA FUNCIONAR COM NOITE
+        // Handle print shift report
         function handlePrintShiftReport() {
             if (!currentReportData) {
                 showToast('Gere um relatório primeiro', true);
                 return;
             }
 
-            // Verificar se temos registos
             if (currentReportData.filteredRecords.length === 0) {
                 showToast('Não há registos para imprimir neste período', true);
                 return;
             }
 
-            // Determinar qual turno mostrar
             let shiftToPrint = currentReportData.shiftFilter;
             
-            // Se for "todos", perguntar qual turno imprimir
             if (shiftToPrint === 'all') {
                 const userChoice = prompt('Para imprimir, selecione o turno:\nDigite 1 para TARDE\nDigite 2 para NOITE', '1');
                 
@@ -2368,7 +2363,6 @@
                 }
             }
 
-            // Filtrar registos apenas para o turno selecionado
             const shiftRecords = currentReportData.filteredRecords.filter(r => r.shift === shiftToPrint);
             
             if (shiftRecords.length === 0) {
@@ -2376,25 +2370,21 @@
                 return;
             }
 
-            // Criar relatório no formato específico
             const printContent = generatePrintFormat(shiftToPrint, shiftRecords, currentReportData);
             
-            // Abrir janela de impressão
             const printWindow = window.open('', '_blank');
             printWindow.document.write(printContent);
             printWindow.document.close();
             printWindow.focus();
             
-            // Aguardar carregamento e imprimir
             setTimeout(() => {
                 printWindow.print();
                 printWindow.close();
             }, 500);
         }
 
-        // Generate print format - FORMATO EXATO DA IMAGEM
+        // Generate print format - CORRIGIDO
         function generatePrintFormat(shiftName, shiftRecords, reportData) {
-            // Agrupar por data
             const recordsByDate = {};
             shiftRecords.forEach(record => {
                 if (!recordsByDate[record.date]) {
@@ -2403,21 +2393,16 @@
                 recordsByDate[record.date].push(record);
             });
             
-            // Criar conteúdo do relatório
             let printHtml = '';
             
-            // Para cada data, criar uma página separada
             const dates = Object.keys(recordsByDate).sort((a, b) => {
                 return parsePortugueseDate(b) - parsePortugueseDate(a);
             });
             
             dates.forEach((date, dateIndex) => {
                 const dateRecords = recordsByDate[date];
-                
-                // Usar apenas o último registro do turno na data
                 const lastRecord = dateRecords[0];
                 
-                // Calcular totais do último registro
                 let dateTotal = 0;
                 const productValues = {};
                 
@@ -2435,7 +2420,6 @@
                     }
                 });
                 
-                // Formato EXATO da imagem (com cabeçalho "Produto")
                 printHtml += `
                     <div style="page-break-after: ${dateIndex < dates.length - 1 ? 'always' : 'avoid'};">
                         <div style="text-align: center; margin-bottom: 20px;">
@@ -2454,12 +2438,12 @@
                                 <div style="width: 100px; text-align: right;">${productValues.minis || '0'}</div>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-right: 150px;">
-                                <div style="width: 200px;">Filetes</div>
+                                <div style="width: 200px;">Filetes RO</div>
                                 <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('filetes', lastRecord)}</div>
                                 <div style="width: 100px; text-align: right;">${productValues.filetes || '0'}</div>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-right: 150px;">
-                                <div style="width: 200px;">Filetes Value</div>
+                                <div style="width: 200px;">Filetes Valeu</div>
                                 <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('filetes_value', lastRecord)}</div>
                                 <div style="width: 100px; text-align: right;">${productValues.filetes_value || '0'}</div>
                             </div>
@@ -2469,7 +2453,7 @@
                                 <div style="width: 100px; text-align: right;">${productValues.zingers || '0'}</div>
                             </div>
                             <div style="display: flex; justify-content: space-between; margin-right: 150px;">
-                                <div style="width: 200px;">Pedacos</div>
+                                <div style="width: 200px;">Pedaços</div>
                                 <div style="width: 250px; text-align: center;">${formatProductDisplayForPrint('pedacos', lastRecord)}</div>
                                 <div style="width: 100px; text-align: right;">${productValues.pedacos || '0'}</div>
                             </div>
@@ -2544,7 +2528,6 @@
                 </html>`;
         }
 
-        // Função auxiliar para formatar a exibição dos produtos no relatório impresso
         function formatProductDisplayForPrint(productId, record) {
             const product = PRODUCTS.find(p => p.id === productId);
             if (!product) return '';
@@ -2561,7 +2544,7 @@
             }
         }
 
-        // Handle export to Excel
+        // Handle export to Excel - CORRIGIDO
         async function handleExportExcel() {
             if (!currentReportData) {
                 showToast('Gere um relatório primeiro', true);
@@ -2584,14 +2567,13 @@
             }
         }
 
-        // Export to Excel
+        // Export to Excel - CORRIGIDO
         function exportToExcel(reportData) {
             return new Promise((resolve, reject) => {
                 try {
                     const { filteredRecords } = reportData;
                     
-                    // Create CSV content
-                    let csv = 'Data,Turno,Utilizador,Minis/Tenders,Filets Ro,Filetes Valeu,Rangers,Pedacos,Asas,Total\n';
+                    let csv = 'Data,Turno,Utilizador,Minis/Tenders,Filetes RO,Filetes Valeu,Zingers,Pedaços,Asas,Total\n';
                     
                     filteredRecords.forEach(record => {
                         const row = [
@@ -2609,7 +2591,6 @@
                         csv += row.join(',') + '\n';
                     });
                     
-                    // Create download link
                     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     const link = document.createElement('a');
                     const url = URL.createObjectURL(blob);
@@ -2668,7 +2649,7 @@
             renderAllRecords(filters);
         }
 
-        // Render all records
+        // Render all records - CORRIGIDO
         function renderAllRecords(filters = {}) {
             const filteredRecords = getRecords(filters);
             const container = document.getElementById('allRecordsList');
@@ -2688,7 +2669,7 @@
             
             let html = '<table class="report-table"><thead><tr>';
             html += '<th>Data</th><th>Turno</th><th>Utilizador</th>';
-            html += '<th>Minis/Tenders</th><th>Filets Ro</th><th>Filetes Valeu</th><th>Rangers</th><th>Pedacos</th><th>Asas</th>';
+            html += '<th>Minis/Tenders</th><th>Filetes RO</th><th>Filetes Valeu</th><th>Zingers</th><th>Pedaços</th><th>Asas</th>';
             html += '<th>Total</th><th class="no-print">Ações</th></tr></thead><tbody>';
             
             filteredRecords.forEach(record => {
@@ -2701,18 +2682,15 @@
                             ${record.shift || 'N/A'}
                         </span>
                     </td>
-                    <td>${record.username || 'N/A'}</td>`;
+                    <td>${record.username || 'N/A'}</td>
+                    <td>${record.minis_total !== undefined && record.minis_total !== null && record.minis_total !== '' && record.minis_total !== 0 ? record.minis_total : '-'}</td>
+                    <td>${record.filetes_total !== undefined && record.filetes_total !== null && record.filetes_total !== '' && record.filetes_total !== 0 ? record.filetes_total : '-'}</td>
+                    <td>${record.filetes_value_total !== undefined && record.filetes_value_total !== null && record.filetes_value_total !== '' && record.filetes_value_total !== 0 ? record.filetes_value_total : '-'}</td>
+                    <td>${record.zingers_total !== undefined && record.zingers_total !== null && record.zingers_total !== '' && record.zingers_total !== 0 ? record.zingers_total : '-'}</td>
+                    <td>${record.pedacos_total !== undefined && record.pedacos_total !== null && record.pedacos_total !== '' && record.pedacos_total !== 0 ? record.pedacos_total : '-'}</td>
+                    <td>${record.asas_total !== undefined && record.asas_total !== null && record.asas_total !== '' && record.asas_total !== 0 ? record.asas_total : '-'}</td>
+                    <td><strong>${record.total_shift || 0}</strong></td>`;
                 
-                // Product columns in the EXACT order
-                const productsInOrder = ['minis', 'filetes', 'filetes_value', 'zingers', 'pedacos', 'asas'];
-                productsInOrder.forEach(productId => {
-                    const totalValue = record[`${productId}_total`];
-                    html += `<td>${totalValue !== undefined && totalValue !== null && totalValue !== '' && totalValue !== 0 ? totalValue : '-'}</td>`;
-                });
-                
-                html += `<td><strong>${record.total_shift || 0}</strong></td>`;
-                
-                // Action buttons
                 html += `<td>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-small" onclick="viewRecord('${record.id}')" title="Ver detalhes">
@@ -2983,7 +2961,6 @@
                 
                 const record = allRecords[recordIndex];
                 
-                // Get form values
                 const editDate = document.getElementById('editDate').value;
                 const editShift = document.getElementById('editShift').value;
                 const editUsername = document.getElementById('editUsername').value.trim();
@@ -2992,16 +2969,13 @@
                     throw new Error('Preencha todos os campos obrigatórios');
                 }
                 
-                // Convert date to Portuguese format
                 const dateParts = editDate.split('-');
                 const portugueseDate = `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}`;
                 
-                // Update basic info
                 record.date = portugueseDate;
                 record.shift = editShift;
                 record.username = editUsername;
                 
-                // Update product values
                 let totalShift = 0;
                 
                 PRODUCTS.forEach(product => {
@@ -3035,16 +3009,13 @@
                 record.total_shift = totalShift;
                 record.updated_at = new Date().toISOString();
                 
-                // Update record
                 allRecords[recordIndex] = record;
                 saveRecordsToStorage();
                 
                 showToast('✅ Registo atualizado com sucesso!');
                 
-                // Close modal
                 closeEditModal();
                 
-                // Refresh views
                 refreshViews();
                 
             } catch (error) {
@@ -3068,13 +3039,11 @@
                     throw new Error('Registo não encontrado');
                 }
                 
-                // Delete record
                 allRecords.splice(recordIndex, 1);
                 saveRecordsToStorage();
                 
                 showToast('✅ Registo eliminado com sucesso!');
                 
-                // Refresh views
                 refreshViews();
                 
             } catch (error) {
@@ -3101,16 +3070,13 @@
             const tardeTotal = allRecords.filter(r => r.shift === 'Tarde').reduce((sum, r) => sum + (r.total_shift || 0), 0);
             const noiteTotal = allRecords.filter(r => r.shift === 'Noite').reduce((sum, r) => sum + (r.total_shift || 0), 0);
             
-            // Calculate averages
             const avgPerRecord = todayRecords.length > 0 ? Math.round(todayProduction / todayRecords.length) : 0;
             const mostProductiveShift = tardeTotal > noiteTotal ? 'Tarde' : (noiteTotal > tardeTotal ? 'Noite' : '-');
             const shiftProductivity = Math.max(tardeTotal, noiteTotal);
             
-            // Calculate daily average
             const dates = [...new Set(allRecords.map(r => r.date))];
             const dailyAvg = dates.length > 0 ? Math.round(totalProduction / dates.length) : 0;
             
-            // Update dashboard elements
             document.getElementById('todayProduction').textContent = todayProduction.toLocaleString();
             document.getElementById('todayRecords').textContent = `${todayRecords.length} registos`;
             document.getElementById('avgPerRecord').textContent = avgPerRecord.toLocaleString();
@@ -3122,13 +3088,11 @@
             document.getElementById('noiteTotal').textContent = noiteTotal.toLocaleString();
             document.getElementById('dailyAvg').textContent = dailyAvg.toLocaleString();
             
-            // Update goal progress
             const dailyGoal = 10000;
             const goalPercentage = Math.min(Math.round((todayProduction / dailyGoal) * 100), 100);
             document.getElementById('goalProgress').style.width = `${goalPercentage}%`;
             document.getElementById('goalPercentage').textContent = `${goalPercentage}%`;
             
-            // Render charts and recent entries
             renderProductChart(todayRecords);
             renderRecentEntries();
         }
@@ -3143,7 +3107,6 @@
                 return;
             }
             
-            // Calculate totals per product
             const productTotals = {};
             PRODUCTS.forEach(product => {
                 productTotals[product.id] = records.reduce((sum, r) => {
@@ -3157,10 +3120,8 @@
                 }, 0);
             });
             
-            // Find max value for scaling
             const maxValue = Math.max(...Object.values(productTotals));
             
-            // Create chart bars
             PRODUCTS.forEach(product => {
                 const value = productTotals[product.id];
                 if (value > 0) {
@@ -3189,7 +3150,7 @@
             }
         }
 
-        // Render recent entries
+        // Render recent entries - CORRIGIDO
         function renderRecentEntries() {
             const container = document.getElementById('recentEntries');
             
@@ -3202,7 +3163,7 @@
             
             let html = '<table class="report-table"><thead><tr>';
             html += '<th>Data</th><th>Turno</th><th>Utilizador</th>';
-            html += '<th>Minis/Tenders</th><th>Filets Ro</th><th>Filetes Valeu</th><th>Rangers</th><th>Pedacos</th><th>Asas</th>';
+            html += '<th>Minis/Tenders</th><th>Filetes RO</th><th>Filetes Valeu</th><th>Zingers</th><th>Pedaços</th><th>Asas</th>';
             html += '<th>Total</th></tr></thead><tbody>';
             
             recentRecords.forEach(record => {
@@ -3216,25 +3177,20 @@
                                 ${record.shift || 'N/A'}
                             </span>
                         </td>
-                        <td>${record.username || 'N/A'}</td>`;
-                
-                // Product columns in the EXACT order
-                const productsInOrder = ['minis', 'filetes', 'filetes_value', 'zingers', 'pedacos', 'asas'];
-                productsInOrder.forEach(productId => {
-                    const totalValue = record[`${productId}_total`];
-                    html += `<td>${totalValue !== undefined && totalValue !== null && totalValue !== '' && totalValue !== 0 ? totalValue : '-'}</td>`;
-                });
-                
-                html += `<td><strong>${record.total_shift || 0}</strong></td></tr>`;
+                        <td>${record.username || 'N/A'}</td>
+                        <td>${record.minis_total !== undefined && record.minis_total !== null && record.minis_total !== '' && record.minis_total !== 0 ? record.minis_total : '-'}</td>
+                        <td>${record.filetes_total !== undefined && record.filetes_total !== null && record.filetes_total !== '' && record.filetes_total !== 0 ? record.filetes_total : '-'}</td>
+                        <td>${record.filetes_value_total !== undefined && record.filetes_value_total !== null && record.filetes_value_total !== '' && record.filetes_value_total !== 0 ? record.filetes_value_total : '-'}</td>
+                        <td>${record.zingers_total !== undefined && record.zingers_total !== null && record.zingers_total !== '' && record.zingers_total !== 0 ? record.zingers_total : '-'}</td>
+                        <td>${record.pedacos_total !== undefined && record.pedacos_total !== null && record.pedacos_total !== '' && record.pedacos_total !== 0 ? record.pedacos_total : '-'}</td>
+                        <td>${record.asas_total !== undefined && record.asas_total !== null && record.asas_total !== '' && record.asas_total !== 0 ? record.asas_total : '-'}</td>
+                        <td><strong>${record.total_shift || 0}</strong></td>
+                    </tr>`;
             });
             
             html += '</tbody></table>';
             container.innerHTML = html;
         }
-
-        // ============================
-        // UTILITY FUNCTIONS
-        // ============================
 
         // Refresh all views
         function refreshViews() {
@@ -3259,7 +3215,6 @@
 
         // Show toast notification
         function showToast(message, isError = false) {
-            // Remove existing toast
             const existingToast = document.querySelector('.toast');
             if (existingToast) {
                 existingToast.remove();
